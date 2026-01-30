@@ -32,7 +32,7 @@ const BookingForm: React.FC = () => {
 
   if (submitted) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen pt-24 pb-12 flex items-center justify-center bg-slate-50 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full bg-white p-10 rounded-2xl shadow-xl text-center">
           <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-6">
             <CheckCircle className="h-10 w-10 text-green-600" />
@@ -53,7 +53,7 @@ const BookingForm: React.FC = () => {
   }
 
   return (
-    <div className="bg-slate-50 py-20">
+    <div className="bg-slate-50 min-h-screen pt-24 pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="lg:grid lg:grid-cols-2 lg:gap-16 items-start">
           

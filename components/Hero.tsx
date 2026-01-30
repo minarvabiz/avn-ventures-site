@@ -75,10 +75,10 @@ const Hero: React.FC = () => {
         style={{ transform: `translate(${mousePos.x * 2}px, ${mousePos.y * 2}px)` }}
       />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col-reverse lg:flex-row items-center w-full">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col-reverse lg:flex-row items-center w-full z-10">
         
         {/* Text Content */}
-        <div className="w-full lg:w-1/2 text-center lg:text-left space-y-6 md:space-y-8 z-10 mt-12 lg:mt-0 relative z-20">
+        <div className="w-full lg:w-1/2 text-center lg:text-left space-y-6 md:space-y-8 mt-12 lg:mt-0 relative z-30">
           <div className="animate-entry delay-100 inline-flex items-center space-x-2 bg-white/5 border border-white/10 backdrop-blur-md rounded-full px-4 py-1.5 md:px-5 md:py-2 mb-2 hover:bg-white/10 transition-colors cursor-default">
             <Star className="w-3 h-3 md:w-4 md:h-4 text-orange-400 fill-orange-400 animate-spin-slow" />
             <span className="text-indigo-200 text-[10px] md:text-xs font-bold tracking-widest uppercase">Trusted by 500+ Clients</span>
@@ -95,17 +95,18 @@ const Hero: React.FC = () => {
             Elevate your space with our premium <b>CCTV</b>, <b>Solar</b>, and <b>Automation</b> solutions. We bring international quality to your doorstep.
           </p>
           
-          <div className="animate-entry delay-400 flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-3 sm:space-y-0 sm:space-x-4 pt-4 px-4 sm:px-0">
+          {/* CTA Buttons - High Z-Index */}
+          <div className="animate-entry delay-400 flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-3 sm:space-y-0 sm:space-x-4 pt-4 px-4 sm:px-0 relative z-50">
             <Link
               to="/contact"
-              className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-2xl font-bold shadow-xl shadow-indigo-600/30 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center space-x-2 text-base md:text-lg"
+              className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-2xl font-bold shadow-xl shadow-indigo-600/30 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center space-x-2 text-base md:text-lg cursor-pointer"
             >
               <span>Book Consultation</span>
               <ArrowRight className="w-5 h-5" />
             </Link>
             <Link
               to="/services"
-              className="w-full sm:w-auto px-8 py-4 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-2xl font-bold backdrop-blur-md transition-all active:scale-95 flex items-center justify-center text-base md:text-lg"
+              className="w-full sm:w-auto px-8 py-4 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-2xl font-bold backdrop-blur-md transition-all active:scale-95 flex items-center justify-center text-base md:text-lg cursor-pointer"
             >
               Explore Services
             </Link>
@@ -124,7 +125,7 @@ const Hero: React.FC = () => {
         </div>
 
         {/* Dynamic Visuals - Circular Image Slider */}
-        <div className="w-full lg:w-1/2 flex justify-center lg:justify-end relative z-0 perspective-1000 mb-8 lg:mb-0 mt-10 lg:mt-0 animate-entry delay-200">
+        <div className="w-full lg:w-1/2 flex justify-center lg:justify-end relative z-0 perspective-1000 mb-8 lg:mb-0 mt-10 lg:mt-0 animate-entry delay-200 pointer-events-none md:pointer-events-auto">
           <div className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-[450px] md:h-[450px] transition-all duration-500">
              {/* Rotating Dashed Circle */}
              <div className="absolute inset-0 border-2 border-dashed border-white/10 rounded-full animate-[spin_30s_linear_infinite]"></div>

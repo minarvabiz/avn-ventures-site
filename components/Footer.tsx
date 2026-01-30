@@ -1,5 +1,6 @@
 import React from 'react';
-import { ShieldCheck, Facebook, Instagram, Twitter, Phone } from 'lucide-react';
+import { ShieldCheck, Facebook, Instagram, Twitter, Phone, Lock } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Footer: React.FC = () => {
   return (
@@ -22,10 +23,10 @@ const Footer: React.FC = () => {
           <div className="col-span-1 md:ml-12">
             <h3 className="text-sm font-semibold text-white tracking-wider uppercase mb-4">Services</h3>
             <ul className="space-y-3">
-              <li><a href="#" className="hover:text-white transition-colors">CCTV Security</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Solar Energy</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Home Automation</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Gate Motors</a></li>
+              <li><Link to="/services/cctv" className="hover:text-white transition-colors">CCTV Security</Link></li>
+              <li><Link to="/services/solar" className="hover:text-white transition-colors">Solar Energy</Link></li>
+              <li><Link to="/services/home-auto" className="hover:text-white transition-colors">Home Automation</Link></li>
+              <li><Link to="/services/gate" className="hover:text-white transition-colors">Gate Motors</Link></li>
             </ul>
           </div>
 
@@ -85,10 +86,13 @@ const Footer: React.FC = () => {
           </div>
         </div>
         
-        <div className="mt-12 border-t border-slate-800 pt-8 text-center">
-          <p className="text-xs text-slate-500">
-            &copy; {new Date().getFullYear()} AVN Ventures. All rights reserved. Designed for Excellence.
+        <div className="mt-12 border-t border-slate-800 pt-8 text-center flex flex-col md:flex-row justify-between items-center">
+          <p className="text-xs text-slate-500 mb-2 md:mb-0">
+            &copy; {new Date().getFullYear()} AVN Ventures. All rights reserved.
           </p>
+          <Link to="/admin" className="text-xs text-slate-700 hover:text-slate-500 flex items-center gap-1">
+             <Lock className="w-3 h-3" /> Admin
+          </Link>
         </div>
       </div>
     </footer>
