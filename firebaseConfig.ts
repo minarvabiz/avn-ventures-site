@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { getAuth } from "firebase/auth";
 
 // Configured with your provided keys
 const firebaseConfig = {
@@ -12,7 +13,7 @@ const firebaseConfig = {
   appId: "1:298390394946:web:30b6c33b629ef5ac6cf5db"
 };
 
-let app, db, storage;
+let app, db, storage, auth;
 let isConfigured = false;
 
 try {
@@ -25,10 +26,11 @@ try {
   
   db = getFirestore(app);
   storage = getStorage(app);
+  auth = getAuth(app);
   isConfigured = true;
   console.log("Firebase connected successfully");
 } catch (error) {
   console.error("Firebase initialization error:", error);
 }
 
-export { db, storage, isConfigured };
+export { db, storage, auth, isConfigured };

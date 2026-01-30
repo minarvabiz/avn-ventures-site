@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { useContent } from '../contexts/ContentContext';
-import { storage, isConfigured } from '../firebaseConfig';
+import { storage, auth, isConfigured } from '../firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { signInAnonymously } from 'firebase/auth';
 import { Trash2, Plus, RotateCcw, Lock, Image as ImageIcon, Layout, Settings, Save, Upload, Cloud, Loader2 } from 'lucide-react';
 
 const Admin: React.FC = () => {
@@ -25,10 +26,21 @@ const Admin: React.FC = () => {
   const [newPassInput, setNewPassInput] = useState('');
   const [confirmPassInput, setConfirmPassInput] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const storedPass = localStorage.getItem('avn_admin_password') || 'admin123';
-    if (password === storedPass) setIsLoggedIn(true);
+    if (password === storedPass) {
+        setIsLoggedIn(true);
+        // Try to sign in to firebase silently to allow storage operations
+        if (auth && !auth.currentUser) {
+            try {
+                await signInAnonymously(auth);
+                console.log("Authenticated for admin operations");
+            } catch (err) {
+                console.error("Auth warning:", err);
+            }
+        }
+    }
     else alert('Invalid Password');
   };
 
@@ -54,18 +66,23 @@ const Admin: React.FC = () => {
 
     setIsUploading(true);
     try {
+      // Ensure we have a user session for storage rules
+      if (auth && !auth.currentUser) {
+         await signInAnonymously(auth);
+      }
+
       const storageRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
-      await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(storageRef);
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
       
       if (uploadTarget === 'hero') {
         setNewHeroUrl(downloadURL);
       } else if (uploadTarget === 'gallery') {
         setNewGalleryUrl(downloadURL);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Upload failed", error);
-      alert("Image upload failed. Check your internet or Firebase rules.");
+      alert(`Image upload failed: ${error.message || "Unknown error"}. Check console for details.`);
     } finally {
       setIsUploading(false);
       setUploadTarget(null);
