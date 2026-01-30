@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Hero from './Hero';
 import Features from './Features';
 import ProcessTimeline from './ProcessTimeline';
@@ -9,8 +9,6 @@ import Brands from './Brands';
 import { Wrench, ShieldCheck, Zap } from 'lucide-react';
 
 const Home: React.FC = () => {
-  const navigate = useNavigate();
-
   return (
     <>
       <Hero />
@@ -48,12 +46,12 @@ const Home: React.FC = () => {
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
         <div className="relative z-10 px-4">
           <h2 className="text-3xl md:text-4xl font-black text-white mb-6">Ready to Upgrade Your Space?</h2>
-          <button 
-            onClick={() => navigate('/contact')}
-            className="bg-white text-indigo-700 px-10 py-4 rounded-full font-bold text-lg hover:bg-indigo-50 transition-all shadow-xl transform hover:-translate-y-1"
+          <Link 
+            to="/contact"
+            className="inline-block bg-white text-indigo-700 px-10 py-4 rounded-full font-bold text-lg hover:bg-indigo-50 transition-all shadow-xl transform hover:-translate-y-1"
           >
             Get a Free Quote Now
-          </button>
+          </Link>
         </div>
       </div>
     </>

@@ -1,37 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ArrowRight, Star, Shield, Sun, Wifi } from 'lucide-react';
+import { useContent } from '../contexts/ContentContext';
 
 const Hero: React.FC = () => {
-  const navigate = useNavigate();
+  const { heroImages } = useContent(); // Use dynamic images from Context
   
-  // Updated Image Order with specific, clear representations
-  const heroImages = [
-    {
-      // High-quality modern CCTV Camera on wall
-      src: "https://images.unsplash.com/photo-1557862921-37829c790f19?auto=format&fit=crop&w=800&q=80", 
-      label: "AI Smart Security"
-    },
-    {
-      // Hand using a Smart Home Touch Panel / Thermostat
-      src: "https://images.unsplash.com/photo-1558002038-1091a166111c?auto=format&fit=crop&w=800&q=80", 
-      label: "Smart Control Panel"
-    },
-    {
-      // Solar Panels
-      src: "https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=800&q=80", 
-      label: "Solar Energy"
-    }
-  ];
-
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   // Automatically cycle through images
   useEffect(() => {
+    if (heroImages.length === 0) return;
     const interval = setInterval(() => {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
-    }, 4000); // Change image every 4 seconds
+    }, 4000); 
 
     return () => clearInterval(interval);
   }, [heroImages.length]);
@@ -39,9 +22,7 @@ const Hero: React.FC = () => {
   // Mouse move handler for parallax effect
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      // Only apply parallax on desktop/larger screens
       if (window.innerWidth >= 768) {
-        // Calculate position relative to center (-1 to 1 range roughly)
         const x = (e.clientX / window.innerWidth - 0.5) * 20; 
         const y = (e.clientY / window.innerHeight - 0.5) * 20;
         setMousePos({ x, y });
@@ -97,7 +78,7 @@ const Hero: React.FC = () => {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col-reverse lg:flex-row items-center w-full">
         
         {/* Text Content */}
-        <div className="w-full lg:w-1/2 text-center lg:text-left space-y-6 md:space-y-8 z-10 mt-12 lg:mt-0">
+        <div className="w-full lg:w-1/2 text-center lg:text-left space-y-6 md:space-y-8 z-10 mt-12 lg:mt-0 relative z-20">
           <div className="animate-entry delay-100 inline-flex items-center space-x-2 bg-white/5 border border-white/10 backdrop-blur-md rounded-full px-4 py-1.5 md:px-5 md:py-2 mb-2 hover:bg-white/10 transition-colors cursor-default">
             <Star className="w-3 h-3 md:w-4 md:h-4 text-orange-400 fill-orange-400 animate-spin-slow" />
             <span className="text-indigo-200 text-[10px] md:text-xs font-bold tracking-widest uppercase">Trusted by 500+ Clients</span>
@@ -115,19 +96,19 @@ const Hero: React.FC = () => {
           </p>
           
           <div className="animate-entry delay-400 flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-3 sm:space-y-0 sm:space-x-4 pt-4 px-4 sm:px-0">
-            <button
-              onClick={() => navigate('/contact')}
+            <Link
+              to="/contact"
               className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-2xl font-bold shadow-xl shadow-indigo-600/30 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center space-x-2 text-base md:text-lg"
             >
               <span>Book Consultation</span>
               <ArrowRight className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => navigate('/services')}
+            </Link>
+            <Link
+              to="/services"
               className="w-full sm:w-auto px-8 py-4 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-2xl font-bold backdrop-blur-md transition-all active:scale-95 flex items-center justify-center text-base md:text-lg"
             >
               Explore Services
-            </button>
+            </Link>
           </div>
 
           <div className="animate-entry delay-400 pt-6 md:pt-10 flex flex-wrap justify-center lg:justify-start gap-4 md:gap-8 text-slate-400 text-xs md:text-sm font-semibold">
@@ -179,7 +160,7 @@ const Hero: React.FC = () => {
                        className="w-full h-full object-cover"
                        onError={(e) => {
                          const target = e.target as HTMLImageElement;
-                         target.onerror = null; // Prevent infinite loop
+                         target.onerror = null; 
                          target.src = "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80"; 
                        }}
                      />

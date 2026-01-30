@@ -1,15 +1,26 @@
 import React from 'react';
+import { useContent } from '../contexts/ContentContext';
+
+const FALLBACK_IMAGES = [
+  "https://images.unsplash.com/photo-1582139329536-e7284fece509?auto=format&fit=crop&w=800&q=80", // CCTV
+  "https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=800&q=80", // Solar
+  "https://images.unsplash.com/photo-1558002038-1091a166111c?auto=format&fit=crop&w=800&q=80", // Automation
+  "https://images.unsplash.com/photo-1590486803833-1c5dc8ce84ac?auto=format&fit=crop&w=800&q=80"  // Surveillance
+];
 
 const ImageGallery: React.FC = () => {
-  // Updated with reliable, specific Unsplash Image IDs to prevent errors
-  const images = [
-    "https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=600&q=80", // Solar Panels on Roof
-    "https://images.unsplash.com/photo-1557862921-37829c790f19?auto=format&fit=crop&w=600&q=80", // Security Camera
-    "https://images.unsplash.com/photo-1558002038-1091a166111c?auto=format&fit=crop&w=600&q=80", // Smart Home Tablet
-    "https://images.unsplash.com/photo-1613665813446-82a78c468a1d?auto=format&fit=crop&w=600&q=80", // Gate/Fence
-    "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=600&q=80", // Electrical / Tech
-    "https://images.unsplash.com/photo-1582139329536-e7284fece509?auto=format&fit=crop&w=600&q=80", // CCTV Close up
-  ];
+  // Use images from Context
+  const { galleryImages } = useContent();
+
+  if (!galleryImages || galleryImages.length === 0) return null;
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>, index: number) => {
+    const target = e.target as HTMLImageElement;
+    // Prevent infinite loop if fallback also fails
+    target.onerror = null;
+    // Assign a fallback image deterministically based on index so it is consistent but varied
+    target.src = FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
+  };
 
   return (
     <div className="py-10 bg-slate-900 overflow-hidden">
@@ -20,17 +31,13 @@ const ImageGallery: React.FC = () => {
       <div className="flex w-[200%] animate-scroll hover:paused">
         {/* First Set */}
         <div className="flex w-1/2 justify-around gap-4 px-4">
-          {images.map((img, idx) => (
+          {galleryImages.map((img, idx) => (
             <div key={`a-${idx}`} className="relative w-64 h-40 rounded-xl overflow-hidden shadow-lg border-2 border-slate-700 flex-shrink-0 group cursor-pointer">
               <img 
                 src={img} 
                 alt="Completed Project" 
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                onError={(e) => {
-                   const target = e.target as HTMLImageElement;
-                   target.onerror = null;
-                   target.src = "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80"; // Fallback image
-                }}
+                onError={(e) => handleImageError(e, idx)}
               />
               <div className="absolute inset-0 bg-indigo-600/20 group-hover:bg-transparent transition-colors"></div>
               {/* Hover Overlay */}
@@ -42,17 +49,13 @@ const ImageGallery: React.FC = () => {
         </div>
         {/* Duplicate Set for Infinite Scroll */}
         <div className="flex w-1/2 justify-around gap-4 px-4">
-           {images.map((img, idx) => (
+           {galleryImages.map((img, idx) => (
             <div key={`b-${idx}`} className="relative w-64 h-40 rounded-xl overflow-hidden shadow-lg border-2 border-slate-700 flex-shrink-0 group cursor-pointer">
               <img 
                 src={img} 
                 alt="Completed Project" 
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                onError={(e) => {
-                   const target = e.target as HTMLImageElement;
-                   target.onerror = null;
-                   target.src = "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80"; // Fallback image
-                }}
+                onError={(e) => handleImageError(e, idx + galleryImages.length)}
               />
               <div className="absolute inset-0 bg-indigo-600/20 group-hover:bg-transparent transition-colors"></div>
                {/* Hover Overlay */}

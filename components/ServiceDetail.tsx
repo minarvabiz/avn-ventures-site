@@ -1,11 +1,10 @@
 import React, { useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { servicesData } from '../data';
 import { ArrowLeft, CheckCircle2, ShieldCheck, CalendarCheck } from 'lucide-react';
 
 const ServiceDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const service = servicesData.find(s => s.id === id);
 
   useEffect(() => {
@@ -16,12 +15,12 @@ const ServiceDetail: React.FC = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
         <h2 className="text-2xl font-bold text-slate-900 mb-4">Service Not Found</h2>
-        <button 
-          onClick={() => navigate('/services')}
+        <Link 
+          to="/services"
           className="text-indigo-600 font-semibold hover:underline flex items-center"
         >
           <ArrowLeft className="w-4 h-4 mr-2" /> Back to Services
-        </button>
+        </Link>
       </div>
     );
   }
@@ -120,12 +119,12 @@ const ServiceDetail: React.FC = () => {
                    </div>
                 </div>
 
-                <button
-                  onClick={() => navigate('/contact')}
-                  className="w-full py-4 bg-white text-indigo-900 rounded-xl font-bold hover:bg-indigo-50 transition-colors shadow-lg active:scale-95"
+                <Link
+                  to="/contact"
+                  className="block w-full text-center py-4 bg-white text-indigo-900 rounded-xl font-bold hover:bg-indigo-50 transition-colors shadow-lg active:scale-95"
                 >
                   Book Free Consultation
-                </button>
+                </Link>
                 
                 <p className="text-center text-slate-500 text-xs mt-4">
                   No hidden charges. 100% Transparent.
