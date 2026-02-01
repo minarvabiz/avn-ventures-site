@@ -48,10 +48,10 @@ const Chatbot: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
       {/* Chat Window */}
       {isOpen && (
-        <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-[90vw] sm:w-[380px] h-[500px] mb-4 flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-300">
+        <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-[90vw] sm:w-[380px] h-[500px] mb-4 flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-300 pointer-events-auto">
           {/* Header */}
           <div className="bg-gradient-to-r from-indigo-600 to-violet-600 p-4 flex justify-between items-center text-white">
             <div className="flex items-center space-x-2">
@@ -133,7 +133,7 @@ const Chatbot: React.FC = () => {
       {/* Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative group flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white w-14 h-14 rounded-full shadow-lg hover:shadow-indigo-500/40 transition-all transform hover:scale-110 active:scale-95"
+        className="pointer-events-auto relative group flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white w-14 h-14 rounded-full shadow-lg hover:shadow-indigo-500/40 transition-all transform hover:scale-110 active:scale-95"
       >
         {isOpen ? (
           <X className="h-7 w-7 transition-transform duration-300 rotate-90" />

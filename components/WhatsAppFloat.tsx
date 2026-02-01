@@ -25,9 +25,9 @@ const WhatsAppFloat: React.FC = () => {
   );
 
   return (
-    <div className="fixed bottom-6 left-6 z-50 flex flex-col items-start gap-4">
+    <div className="fixed bottom-6 left-6 z-50 flex flex-col items-start gap-4 pointer-events-none">
       {/* Options Menu */}
-      <div className={`transition-all duration-300 transform origin-bottom-left ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}>
+      <div className={`transition-all duration-300 transform origin-bottom-left pointer-events-auto ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}>
         <div className="bg-white p-4 rounded-2xl shadow-2xl border border-green-100 mb-2 flex flex-col gap-2 w-72">
            <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-2">
              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Start a Conversation</span>
@@ -49,7 +49,7 @@ const WhatsAppFloat: React.FC = () => {
       {/* Main Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="group relative flex items-center justify-center bg-[#25D366] hover:bg-[#20bd5a] text-white w-14 h-14 rounded-full shadow-lg hover:shadow-green-500/40 transition-all transform hover:scale-110 active:scale-95"
+        className="pointer-events-auto group relative flex items-center justify-center bg-[#25D366] hover:bg-[#20bd5a] text-white w-14 h-14 rounded-full shadow-lg hover:shadow-green-500/40 transition-all transform hover:scale-110 active:scale-95"
         aria-label="Open WhatsApp Chat"
       >
         {isOpen ? (
