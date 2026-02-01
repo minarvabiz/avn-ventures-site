@@ -1,25 +1,28 @@
 import React from 'react';
 import { useContent } from '../contexts/ContentContext';
 
+// Define a robust list of fallback images covering CCTV, Solar, Automation, and Gates
 const FALLBACK_IMAGES = [
-  "https://images.unsplash.com/photo-1582139329536-e7284fece509?auto=format&fit=crop&w=800&q=80", // CCTV
+  "https://images.unsplash.com/photo-1557862921-37829c790f19?auto=format&fit=crop&w=800&q=80", // Security
   "https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=800&q=80", // Solar
   "https://images.unsplash.com/photo-1558002038-1091a166111c?auto=format&fit=crop&w=800&q=80", // Automation
-  "https://images.unsplash.com/photo-1590486803833-1c5dc8ce84ac?auto=format&fit=crop&w=800&q=80"  // Surveillance
+  "https://images.unsplash.com/photo-1613665813446-82a78c468a1d?auto=format&fit=crop&w=800&q=80", // Gate
+  "https://images.unsplash.com/photo-1590486803833-1c5dc8ce84ac?auto=format&fit=crop&w=800&q=80", // CCTV
+  "https://images.unsplash.com/photo-1508514177221-188b1cf2f24f?auto=format&fit=crop&w=800&q=80"  // Solar Panel
 ];
 
 const ImageGallery: React.FC = () => {
-  // Use images from Context
   const { galleryImages } = useContent();
 
   if (!galleryImages || galleryImages.length === 0) return null;
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>, index: number) => {
-    const target = e.target as HTMLImageElement;
-    // Prevent infinite loop if fallback also fails
-    target.onerror = null;
-    // Assign a fallback image deterministically based on index so it is consistent but varied
-    target.src = FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
+    const target = e.currentTarget;
+    target.onerror = null; // Prevent infinite loop if fallback fails
+    
+    // Assign a fallback image deterministically based on index
+    const fallbackIndex = index % FALLBACK_IMAGES.length;
+    target.src = FALLBACK_IMAGES[fallbackIndex];
   };
 
   return (

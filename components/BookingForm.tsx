@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BookingFormData } from '../types';
-import { Send, MapPin, Phone, Mail, CheckCircle } from 'lucide-react';
+import { Send, MapPin, Phone, Mail, CheckCircle, Loader2 } from 'lucide-react';
+import { db, isConfigured } from '../firebaseConfig';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const BookingForm: React.FC = () => {
   const [formData, setFormData] = useState<BookingFormData>({
@@ -12,6 +14,8 @@ const BookingForm: React.FC = () => {
     message: ''
   });
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -21,13 +25,33 @@ const BookingForm: React.FC = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate API call
-    console.log('Form submitted:', formData);
-    setTimeout(() => {
-      setSubmitted(true);
-    }, 1000);
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      if (isConfigured && db) {
+        // Save to Firestore
+        await addDoc(collection(db, "bookings"), {
+          ...formData,
+          createdAt: serverTimestamp(),
+          status: 'new',
+          source: 'web'
+        });
+        setSubmitted(true);
+      } else {
+        // Fallback simulation if Firebase is not configured (e.g. dev environment without keys)
+        console.warn("Firebase not configured, simulating submission");
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        setSubmitted(true);
+      }
+    } catch (err) {
+      console.error("Error submitting form:", err);
+      setError("There was a problem submitting your request. Please try again or call us.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -201,12 +225,32 @@ const BookingForm: React.FC = () => {
                   />
                 </div>
 
+                {error && (
+                  <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+                    {error}
+                  </div>
+                )}
+
                 <button
                   type="submit"
-                  className="w-full flex justify-center py-4 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                  disabled={isSubmitting}
+                  className={`w-full flex justify-center items-center py-4 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white transition-colors ${
+                    isSubmitting 
+                      ? 'bg-indigo-400 cursor-not-allowed' 
+                      : 'bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                  }`}
                 >
-                  <Send className="w-5 h-5 mr-2" />
-                  Submit Request
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5 mr-2" />
+                      Submit Request
+                    </>
+                  )}
                 </button>
               </form>
             </div>

@@ -10,6 +10,18 @@ interface ServicesProps {
 const Services: React.FC<ServicesProps> = ({ showPricing = false }) => {
   return (
     <div className="bg-slate-50 py-24 relative overflow-hidden">
+      <style>{`
+        @keyframes bounceIn {
+          0% { opacity: 0; transform: scale(0.3); }
+          50% { opacity: 1; transform: scale(1.05); }
+          70% { transform: scale(0.9); }
+          100% { transform: scale(1); }
+        }
+        .animate-bounce-in {
+          animation: bounceIn 0.8s cubic-bezier(0.215, 0.610, 0.355, 1.000) both;
+        }
+      `}</style>
+      
       {/* Background decoration */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-10 w-64 h-64 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
@@ -43,7 +55,10 @@ const Services: React.FC<ServicesProps> = ({ showPricing = false }) => {
                 <div className="flex items-start justify-between mb-6">
                   {/* Icon Container with Animations & Tooltip */}
                   <div className="relative group/tooltip">
-                    <div className={`p-4 rounded-2xl bg-gradient-to-br ${idx % 2 === 0 ? 'from-indigo-500 to-purple-500' : 'from-orange-500 to-pink-500'} text-white shadow-lg transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 hover:!scale-125 hover:shadow-xl hover:brightness-110 cursor-pointer`}>
+                    <div 
+                      className={`p-4 rounded-2xl bg-gradient-to-br ${idx % 2 === 0 ? 'from-indigo-500 to-purple-500' : 'from-orange-500 to-pink-500'} text-white shadow-lg transform transition-all duration-300 animate-bounce-in group-hover:scale-110 group-hover:rotate-3 hover:!scale-125 hover:shadow-xl hover:brightness-110 cursor-pointer`}
+                      style={{ animationDelay: `${idx * 150}ms` }}
+                    >
                       <service.icon className="h-8 w-8 animate-pulse-once" />
                     </div>
                     

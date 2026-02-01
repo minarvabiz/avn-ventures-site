@@ -40,8 +40,12 @@ const Admin: React.FC = () => {
     const storedPass = localStorage.getItem('avn_admin_password') || 'admin123';
     if (password === storedPass) {
         setIsLoggedIn(true);
+        // Ensure auth is initialized on login
         if (auth && !auth.currentUser) {
-            signInAnonymously(auth).catch((err) => console.warn("Auth warning:", err));
+            console.log("Attempting anonymous login...");
+            signInAnonymously(auth)
+                .then(() => console.log("Logged in anonymously to Firebase"))
+                .catch((err) => alert("Firebase Auth Error: " + err.message));
         }
     }
     else alert('Invalid Password');
@@ -66,15 +70,22 @@ const Admin: React.FC = () => {
     let finalUrl = '';
 
     try {
-      if (!isFirebaseActive || !storage) throw new Error("Firebase not configured.");
+      if (!isFirebaseActive || !storage) throw new Error("Firebase is not configured or connected.");
 
+      // Double check auth before upload
       if (auth && !auth.currentUser) {
-         try { await signInAnonymously(auth); } catch (e) { throw new Error("Auth failed."); }
+         console.log("Re-authenticating...");
+         await signInAnonymously(auth);
       }
 
       const storageRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
+      console.log("Starting upload to:", storageRef.fullPath);
+      
       const snapshot = await uploadBytes(storageRef, file);
+      console.log("Upload successful, fetching URL...");
+      
       finalUrl = await getDownloadURL(snapshot.ref);
+      console.log("File available at:", finalUrl);
 
       if (finalUrl) {
           if (uploadTarget === 'hero') setNewHeroUrl(finalUrl);
@@ -83,7 +94,14 @@ const Admin: React.FC = () => {
       }
 
     } catch (error: any) {
-      alert(`Upload Failed: ${error.message}. Check Rules.`);
+      console.error("Upload Error Full:", error);
+      let errorMessage = error.message;
+      if (error.code === 'storage/unauthorized') {
+          errorMessage = "Permission Denied: Check Firebase Storage Rules.";
+      } else if (error.code === 'storage/retry-limit-exceeded') {
+          errorMessage = "Upload timed out. Check your internet connection.";
+      }
+      alert(`Upload Failed: ${errorMessage}`);
     } finally {
       setIsUploading(false);
       setUploadTarget(null);

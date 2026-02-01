@@ -55,8 +55,8 @@ const Navbar: React.FC = () => {
                 to={link.path}
                 className={`relative px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 overflow-hidden group/btn ${
                   isActive(link.path)
-                    ? `text-white shadow-lg shadow-${theme}-500/30`
-                    : `text-slate-600 hover:text-${theme}-600`
+                    ? `text-white shadow-lg shadow-${theme}-500/30 scale-105`
+                    : `text-slate-600 hover:text-${theme}-600 hover:scale-105 active:scale-95`
                 }`}
               >
                 {/* Active State Background */}
@@ -66,7 +66,7 @@ const Navbar: React.FC = () => {
                 
                 {/* Hover Effect */}
                 <span className={`absolute inset-0 bg-${theme}-50 w-full h-full -z-10 transform scale-x-0 group-hover/btn:scale-x-100 transition-transform origin-left duration-300 ${isActive(link.path) ? 'hidden' : 'block'}`}></span>
-                <span className="relative z-10 group-hover/btn:tracking-wide transition-all duration-300">{link.label}</span>
+                <span className="relative z-10 transition-all duration-300">{link.label}</span>
                 
                 {/* Bottom Glow */}
                 {!isActive(link.path) && (
@@ -77,7 +77,7 @@ const Navbar: React.FC = () => {
             
             <Link
               to="/contact"
-              className="ml-6 relative group overflow-hidden bg-slate-900 text-white px-8 py-3 rounded-full font-bold text-sm shadow-xl hover:shadow-2xl hover:shadow-orange-500/40 transform hover:-translate-y-1 transition-all duration-300"
+              className="ml-6 relative group overflow-hidden bg-slate-900 text-white px-8 py-3 rounded-full font-bold text-sm shadow-xl hover:shadow-2xl hover:shadow-orange-500/40 transform hover:-translate-y-1 hover:scale-105 active:scale-95 transition-all duration-300"
             >
               <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <span className="relative z-10 flex items-center gap-2">
@@ -111,10 +111,10 @@ const Navbar: React.FC = () => {
               key={link.path}
               to={link.path}
               onClick={() => setIsOpen(false)}
-              className={`block w-full text-left px-4 py-4 rounded-2xl text-base font-bold transition-all ${
+              className={`block w-full text-left px-4 py-4 rounded-2xl text-base font-bold transition-all transform ${
                 isActive(link.path)
                   ? `bg-gradient-to-r from-${theme}-50 to-purple-50 text-${theme}-700 shadow-inner border border-${theme}-100`
-                  : `text-slate-600 hover:bg-slate-50 hover:text-${theme}-600 hover:pl-6`
+                  : `text-slate-600 hover:bg-slate-50 hover:text-${theme}-600 hover:pl-6 hover:scale-[1.02]`
               }`}
             >
               {link.label}

@@ -5,7 +5,7 @@ import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 // Default Data
 const defaultHeroImages = [
   {
-    src: "https://images.unsplash.com/photo-1557862921-37829c790f19?auto=format&fit=crop&w=800&q=80", 
+    src: "https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&w=800&q=80", 
     label: "AI Smart Security"
   },
   {

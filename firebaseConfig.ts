@@ -3,7 +3,6 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
 
-// Configured with your provided keys
 const firebaseConfig = {
   apiKey: "AIzaSyAVNnUIFwzQxCTF-yQzyvbZHjyj30I4yps",
   authDomain: "avn-ventures-92028.firebaseapp.com",
@@ -17,7 +16,6 @@ let app, db, storage, auth;
 let isConfigured = false;
 
 try {
-  // Check if firebase app is already initialized to avoid "Firebase: Firebase App named '[DEFAULT]' already exists" error
   if (!getApps().length) {
     app = initializeApp(firebaseConfig);
   } else {
