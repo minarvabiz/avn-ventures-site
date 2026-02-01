@@ -3,7 +3,7 @@ import { useContent } from '../contexts/ContentContext';
 import { storage, auth, isConfigured } from '../firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { signInAnonymously } from 'firebase/auth';
-import { Trash2, Plus, RotateCcw, Lock, Image as ImageIcon, Layout, Settings, Save, Upload, Cloud, Loader2 } from 'lucide-react';
+import { Trash2, Plus, RotateCcw, Lock, Upload, Cloud, Loader2, AlertTriangle } from 'lucide-react';
 
 const Admin: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -31,14 +31,11 @@ const Admin: React.FC = () => {
     const storedPass = localStorage.getItem('avn_admin_password') || 'admin123';
     if (password === storedPass) {
         setIsLoggedIn(true);
-        // Try to sign in to firebase silently to allow storage operations
+        // Try silent auth on login to warm up connection
         if (auth && !auth.currentUser) {
-            try {
-                await signInAnonymously(auth);
-                console.log("Authenticated for admin operations");
-            } catch (err) {
-                console.error("Auth warning:", err);
-            }
+            signInAnonymously(auth).catch((err) => {
+                console.warn("Auth warning:", err);
+            });
         }
     }
     else alert('Invalid Password');
@@ -59,30 +56,49 @@ const Admin: React.FC = () => {
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
 
-    if (!isFirebaseActive || !storage) {
-      alert("Firebase is not configured! Please add API keys in firebaseConfig.ts to enable uploads.");
-      return;
-    }
-
     setIsUploading(true);
+    let finalUrl = '';
+
     try {
-      // Ensure we have a user session for storage rules
-      if (auth && !auth.currentUser) {
-         await signInAnonymously(auth);
+      if (!isFirebaseActive || !storage) {
+        throw new Error("Firebase not configured properly. Check api keys.");
       }
 
+      // 1. Ensure Authentication
+      if (auth && !auth.currentUser) {
+         try {
+             await signInAnonymously(auth);
+         } catch (authErr: any) {
+             console.error("Auth Failed:", authErr);
+             alert("Error: Authentication failed.\n\nPlease go to Firebase Console -> Authentication -> Sign-in method -> Enable 'Anonymous' provider.");
+             setIsUploading(false);
+             return;
+         }
+      }
+
+      // 2. Perform Upload
       const storageRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
       const snapshot = await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(snapshot.ref);
-      
-      if (uploadTarget === 'hero') {
-        setNewHeroUrl(downloadURL);
-      } else if (uploadTarget === 'gallery') {
-        setNewGalleryUrl(downloadURL);
+      finalUrl = await getDownloadURL(snapshot.ref);
+
+      // 3. Apply the URL
+      if (finalUrl) {
+          if (uploadTarget === 'hero') {
+            setNewHeroUrl(finalUrl);
+          } else if (uploadTarget === 'gallery') {
+            setNewGalleryUrl(finalUrl);
+          }
       }
+
     } catch (error: any) {
-      console.error("Upload failed", error);
-      alert(`Image upload failed: ${error.message || "Unknown error"}. Check console for details.`);
+      console.error("Upload Error:", error);
+      let msg = "Upload failed.";
+      if (error.code === 'storage/unauthorized') {
+          msg = "Permission Denied. \n1. Enable 'Anonymous' sign-in in Firebase Authentication.\n2. Check Storage Rules.";
+      } else {
+          msg = error.message;
+      }
+      alert(msg);
     } finally {
       setIsUploading(false);
       setUploadTarget(null);
@@ -149,7 +165,7 @@ const Admin: React.FC = () => {
         <div className={`mb-6 p-3 rounded-lg flex items-center justify-between text-sm ${isFirebaseActive ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
            <div className="flex items-center">
              <Cloud className="w-4 h-4 mr-2" />
-             {isFirebaseActive ? <strong>Firebase Connected (Changes are Permanent)</strong> : <span>Local Mode (Changes are Temporary). Add Firebase keys to fix.</span>}
+             {isFirebaseActive ? <strong>Firebase Connected</strong> : <span>Firebase Error: Check console.</span>}
            </div>
         </div>
 
@@ -183,8 +199,8 @@ const Admin: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                     <div className="flex gap-2">
                         <input type="text" value={newHeroUrl} onChange={(e) => setNewHeroUrl(e.target.value)} placeholder="Image URL" className="flex-1 px-4 py-2 rounded-lg border outline-none" />
-                        <button onClick={() => triggerUpload('hero')} className="bg-slate-200 p-2 rounded-lg hover:bg-slate-300" title="Upload Image">
-                           {isUploading && uploadTarget === 'hero' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
+                        <button onClick={() => triggerUpload('hero')} className="bg-slate-200 p-2 rounded-lg hover:bg-slate-300 relative" title="Upload Image" disabled={isUploading}>
+                           {isUploading && uploadTarget === 'hero' ? <Loader2 className="w-5 h-5 animate-spin text-indigo-600" /> : <Upload className="w-5 h-5" />}
                         </button>
                     </div>
                     <input type="text" value={newHeroLabel} onChange={(e) => setNewHeroLabel(e.target.value)} placeholder="Label" className="px-4 py-2 rounded-lg border outline-none" />
@@ -214,8 +230,8 @@ const Admin: React.FC = () => {
                   <div className="flex gap-4">
                     <div className="flex-1 flex gap-2">
                         <input type="text" value={newGalleryUrl} onChange={(e) => setNewGalleryUrl(e.target.value)} placeholder="Image URL" className="flex-1 px-4 py-2 rounded-lg border outline-none" />
-                        <button onClick={() => triggerUpload('gallery')} className="bg-slate-200 p-2 rounded-lg hover:bg-slate-300" title="Upload Image">
-                            {isUploading && uploadTarget === 'gallery' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
+                        <button onClick={() => triggerUpload('gallery')} className="bg-slate-200 p-2 rounded-lg hover:bg-slate-300" title="Upload Image" disabled={isUploading}>
+                            {isUploading && uploadTarget === 'gallery' ? <Loader2 className="w-5 h-5 animate-spin text-indigo-600" /> : <Upload className="w-5 h-5" />}
                         </button>
                     </div>
                     <button onClick={addGalleryImage} className="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700">Add</button>
