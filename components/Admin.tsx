@@ -3,15 +3,15 @@ import { useContent } from '../contexts/ContentContext';
 import { storage, auth, isConfigured } from '../firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { signInAnonymously } from 'firebase/auth';
-import { Trash2, Plus, RotateCcw, Lock, Upload, Cloud, Loader2, AlertTriangle } from 'lucide-react';
+import { Trash2, Plus, RotateCcw, Lock, Upload, Cloud, Loader2, AlertTriangle, ExternalLink, Palette, Type, Image as ImageIcon, LayoutTemplate, Megaphone } from 'lucide-react';
 
 const Admin: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [password, setPassword] = useState('');
-  const { heroImages, galleryImages, updateHeroImages, updateGalleryImages, resetToDefaults, isFirebaseActive } = useContent();
-  const [activeTab, setActiveTab] = useState<'hero' | 'gallery' | 'settings'>('hero');
+  const { heroImages, galleryImages, appConfig, updateHeroImages, updateGalleryImages, updateAppConfig, resetToDefaults, isFirebaseActive } = useContent();
+  const [activeTab, setActiveTab] = useState<'branding' | 'content' | 'media' | 'settings'>('media');
 
-  // Input States
+  // Input States for Media
   const [newHeroUrl, setNewHeroUrl] = useState('');
   const [newHeroLabel, setNewHeroLabel] = useState('');
   const [newGalleryUrl, setNewGalleryUrl] = useState('');
@@ -19,23 +19,29 @@ const Admin: React.FC = () => {
   // Upload States
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadTarget, setUploadTarget] = useState<'hero' | 'gallery' | null>(null);
+  const [uploadTarget, setUploadTarget] = useState<'hero' | 'gallery' | 'logo' | null>(null);
 
   // Password Change State
   const [currentPassInput, setCurrentPassInput] = useState('');
   const [newPassInput, setNewPassInput] = useState('');
   const [confirmPassInput, setConfirmPassInput] = useState('');
 
+  // Themes
+  const themes = [
+    { id: 'indigo', name: 'Classic Indigo', color: 'bg-indigo-600' },
+    { id: 'blue', name: 'Ocean Blue', color: 'bg-blue-600' },
+    { id: 'emerald', name: 'Nature Green', color: 'bg-emerald-600' },
+    { id: 'violet', name: 'Royal Purple', color: 'bg-violet-600' },
+    { id: 'rose', name: 'Sunset Rose', color: 'bg-rose-600' },
+  ];
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const storedPass = localStorage.getItem('avn_admin_password') || 'admin123';
     if (password === storedPass) {
         setIsLoggedIn(true);
-        // Try silent auth on login to warm up connection
         if (auth && !auth.currentUser) {
-            signInAnonymously(auth).catch((err) => {
-                console.warn("Auth warning:", err);
-            });
+            signInAnonymously(auth).catch((err) => console.warn("Auth warning:", err));
         }
     }
     else alert('Invalid Password');
@@ -60,45 +66,24 @@ const Admin: React.FC = () => {
     let finalUrl = '';
 
     try {
-      if (!isFirebaseActive || !storage) {
-        throw new Error("Firebase not configured properly. Check api keys.");
-      }
+      if (!isFirebaseActive || !storage) throw new Error("Firebase not configured.");
 
-      // 1. Ensure Authentication
       if (auth && !auth.currentUser) {
-         try {
-             await signInAnonymously(auth);
-         } catch (authErr: any) {
-             console.error("Auth Failed:", authErr);
-             alert("Error: Authentication failed.\n\nPlease go to Firebase Console -> Authentication -> Sign-in method -> Enable 'Anonymous' provider.");
-             setIsUploading(false);
-             return;
-         }
+         try { await signInAnonymously(auth); } catch (e) { throw new Error("Auth failed."); }
       }
 
-      // 2. Perform Upload
       const storageRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
       const snapshot = await uploadBytes(storageRef, file);
       finalUrl = await getDownloadURL(snapshot.ref);
 
-      // 3. Apply the URL
       if (finalUrl) {
-          if (uploadTarget === 'hero') {
-            setNewHeroUrl(finalUrl);
-          } else if (uploadTarget === 'gallery') {
-            setNewGalleryUrl(finalUrl);
-          }
+          if (uploadTarget === 'hero') setNewHeroUrl(finalUrl);
+          else if (uploadTarget === 'gallery') setNewGalleryUrl(finalUrl);
+          else if (uploadTarget === 'logo') updateAppConfig({ logoUrl: finalUrl });
       }
 
     } catch (error: any) {
-      console.error("Upload Error:", error);
-      let msg = "Upload failed.";
-      if (error.code === 'storage/unauthorized') {
-          msg = "Permission Denied. \n1. Enable 'Anonymous' sign-in in Firebase Authentication.\n2. Check Storage Rules.";
-      } else {
-          msg = error.message;
-      }
-      alert(msg);
+      alert(`Upload Failed: ${error.message}. Check Rules.`);
     } finally {
       setIsUploading(false);
       setUploadTarget(null);
@@ -106,12 +91,11 @@ const Admin: React.FC = () => {
     }
   };
 
-  const triggerUpload = (target: 'hero' | 'gallery') => {
+  const triggerUpload = (target: 'hero' | 'gallery' | 'logo') => {
     setUploadTarget(target);
     fileInputRef.current?.click();
   };
 
-  // Content Helpers
   const addHeroImage = () => {
     if (newHeroUrl && newHeroLabel) {
       updateHeroImages([...heroImages, { src: newHeroUrl, label: newHeroLabel }]);
@@ -160,104 +144,217 @@ const Admin: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 pt-24 pb-12 px-4">
       <div className="max-w-6xl mx-auto">
+        <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="image/*" />
         
-        {/* Connection Status */}
-        <div className={`mb-6 p-3 rounded-lg flex items-center justify-between text-sm ${isFirebaseActive ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
+        {/* Status Bar */}
+        <div className={`mb-6 p-4 rounded-lg flex flex-col md:flex-row items-center justify-between text-sm ${isFirebaseActive ? 'bg-green-50 border-green-100 text-green-800' : 'bg-orange-50 border-orange-100 text-orange-800'} border`}>
            <div className="flex items-center">
-             <Cloud className="w-4 h-4 mr-2" />
-             {isFirebaseActive ? <strong>Firebase Connected</strong> : <span>Firebase Error: Check console.</span>}
+             <Cloud className="w-5 h-5 mr-2" />
+             {isFirebaseActive ? <strong>Firebase Connected</strong> : <span>Local Mode (Changes won't be live)</span>}
            </div>
-        </div>
-
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-black text-slate-900">Content Manager</h1>
-          <button onClick={() => { if(window.confirm('Reset defaults?')) resetToDefaults(); }} className="flex items-center space-x-2 text-slate-500 hover:text-red-500">
-            <RotateCcw className="w-4 h-4" /> <span>Reset</span>
+           <button onClick={() => { if(window.confirm('Reset all content to defaults?')) resetToDefaults(); }} className="flex items-center text-red-500 hover:text-red-700 mt-2 md:mt-0 font-bold">
+            <RotateCcw className="w-4 h-4 mr-1" /> Reset All
           </button>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
-          <div className="flex border-b border-slate-200 overflow-x-auto">
-            {['hero', 'gallery', 'settings'].map((tab) => (
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Sidebar Tabs */}
+          <div className="w-full md:w-64 bg-white rounded-xl shadow-lg border border-slate-100 h-fit overflow-hidden">
+            {[
+              { id: 'media', icon: ImageIcon, label: 'Images & Gallery' },
+              { id: 'branding', icon: LayoutTemplate, label: 'Branding & Theme' },
+              { id: 'content', icon: Type, label: 'Text Content' },
+              { id: 'settings', icon: Lock, label: 'Security' },
+            ].map((tab) => (
               <button
-                key={tab}
-                onClick={() => setActiveTab(tab as any)}
-                className={`flex-1 py-4 px-6 font-bold capitalize ${activeTab === tab ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500'}`}
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`w-full flex items-center px-6 py-4 font-bold transition-colors ${activeTab === tab.id ? 'bg-indigo-50 text-indigo-600 border-r-4 border-indigo-600' : 'text-slate-500 hover:bg-slate-50'}`}
               >
-                {tab}
+                <tab.icon className="w-5 h-5 mr-3" />
+                {tab.label}
               </button>
             ))}
           </div>
 
-          <div className="p-8">
-            <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="image/*" />
-
-            {activeTab === 'hero' && (
-              <div className="space-y-8">
-                <div className="bg-indigo-50 p-6 rounded-xl border border-indigo-100">
-                  <h3 className="font-bold text-indigo-900 mb-4">Add New Slide</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                    <div className="flex gap-2">
-                        <input type="text" value={newHeroUrl} onChange={(e) => setNewHeroUrl(e.target.value)} placeholder="Image URL" className="flex-1 px-4 py-2 rounded-lg border outline-none" />
-                        <button onClick={() => triggerUpload('hero')} className="bg-slate-200 p-2 rounded-lg hover:bg-slate-300 relative" title="Upload Image" disabled={isUploading}>
-                           {isUploading && uploadTarget === 'hero' ? <Loader2 className="w-5 h-5 animate-spin text-indigo-600" /> : <Upload className="w-5 h-5" />}
-                        </button>
-                    </div>
-                    <input type="text" value={newHeroLabel} onChange={(e) => setNewHeroLabel(e.target.value)} placeholder="Label" className="px-4 py-2 rounded-lg border outline-none" />
-                    <button onClick={addHeroImage} className="bg-indigo-600 text-white font-bold py-2 rounded-lg hover:bg-indigo-700 flex items-center justify-center">
-                      <Plus className="w-5 h-5 mr-1" /> Add Slide
-                    </button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {heroImages.map((img, idx) => (
-                    <div key={idx} className="relative group rounded-xl overflow-hidden shadow-md">
-                      <img src={img.src} className="w-full h-48 object-cover" />
-                      <button onClick={() => removeHeroImage(idx)} className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                         <Trash2 className="w-4 h-4" />
-                      </button>
-                      <div className="absolute bottom-0 w-full bg-black/60 text-white p-2 text-center text-sm">{img.label}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'gallery' && (
-              <div className="space-y-8">
-                 <div className="bg-indigo-50 p-6 rounded-xl border border-indigo-100">
-                  <h3 className="font-bold text-indigo-900 mb-4">Add Work Photo</h3>
-                  <div className="flex gap-4">
-                    <div className="flex-1 flex gap-2">
-                        <input type="text" value={newGalleryUrl} onChange={(e) => setNewGalleryUrl(e.target.value)} placeholder="Image URL" className="flex-1 px-4 py-2 rounded-lg border outline-none" />
-                        <button onClick={() => triggerUpload('gallery')} className="bg-slate-200 p-2 rounded-lg hover:bg-slate-300" title="Upload Image" disabled={isUploading}>
-                            {isUploading && uploadTarget === 'gallery' ? <Loader2 className="w-5 h-5 animate-spin text-indigo-600" /> : <Upload className="w-5 h-5" />}
-                        </button>
-                    </div>
-                    <button onClick={addGalleryImage} className="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700">Add</button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {galleryImages.map((url, idx) => (
-                    <div key={idx} className="relative group rounded-xl overflow-hidden aspect-video">
-                      <img src={url} className="w-full h-full object-cover" />
-                      <button onClick={() => removeGalleryImage(idx)} className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 text-white transition-opacity">
-                        <Trash2 className="w-6 h-6" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+          {/* Main Content Area */}
+          <div className="flex-1 bg-white rounded-xl shadow-lg border border-slate-100 p-6 md:p-8">
             
+            {/* --- MEDIA TAB --- */}
+            {activeTab === 'media' && (
+              <div className="space-y-10">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center"><ImageIcon className="mr-2" /> Hero Slides</h3>
+                  <div className="bg-slate-50 p-4 rounded-xl mb-4">
+                    <div className="flex flex-col md:flex-row gap-2">
+                        <div className="flex-1 flex gap-2">
+                            <input type="text" value={newHeroUrl} onChange={(e) => setNewHeroUrl(e.target.value)} placeholder="Image URL" className="flex-1 p-2 rounded border" />
+                            <button onClick={() => triggerUpload('hero')} className="bg-white p-2 border rounded hover:bg-slate-100" disabled={isUploading} title="Upload">
+                                {isUploading && uploadTarget === 'hero' ? <Loader2 className="animate-spin w-5 h-5" /> : <Upload className="w-5 h-5" />}
+                            </button>
+                        </div>
+                        <input type="text" value={newHeroLabel} onChange={(e) => setNewHeroLabel(e.target.value)} placeholder="Label text" className="flex-1 p-2 rounded border" />
+                        <button onClick={addHeroImage} className="bg-indigo-600 text-white px-4 py-2 rounded font-bold hover:bg-indigo-700">Add</button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {heroImages.map((img, idx) => (
+                      <div key={idx} className="relative group rounded-lg overflow-hidden h-32">
+                        <img src={img.src} className="w-full h-full object-cover" />
+                        <button onClick={() => removeHeroImage(idx)} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100"><Trash2 className="w-4 h-4" /></button>
+                        <div className="absolute bottom-0 w-full bg-black/50 text-white text-xs p-1 text-center truncate">{img.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center"><ImageIcon className="mr-2" /> Work Gallery</h3>
+                  <div className="bg-slate-50 p-4 rounded-xl mb-4 flex gap-2">
+                     <div className="flex-1 flex gap-2">
+                        <input type="text" value={newGalleryUrl} onChange={(e) => setNewGalleryUrl(e.target.value)} placeholder="Image URL" className="flex-1 p-2 rounded border" />
+                        <button onClick={() => triggerUpload('gallery')} className="bg-white p-2 border rounded hover:bg-slate-100" disabled={isUploading}>
+                            {isUploading && uploadTarget === 'gallery' ? <Loader2 className="animate-spin w-5 h-5" /> : <Upload className="w-5 h-5" />}
+                        </button>
+                     </div>
+                     <button onClick={addGalleryImage} className="bg-indigo-600 text-white px-4 py-2 rounded font-bold hover:bg-indigo-700">Add</button>
+                  </div>
+                  <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+                    {galleryImages.map((url, idx) => (
+                      <div key={idx} className="relative group rounded-lg overflow-hidden h-24">
+                        <img src={url} className="w-full h-full object-cover" />
+                        <button onClick={() => removeGalleryImage(idx)} className="absolute inset-0 bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100"><Trash2 className="w-5 h-5" /></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* --- BRANDING & THEME TAB --- */}
+            {activeTab === 'branding' && (
+              <div className="space-y-8">
+                <div>
+                   <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center"><Palette className="mr-2" /> Theme Color</h3>
+                   <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                      {themes.map(t => (
+                        <button 
+                          key={t.id}
+                          onClick={() => updateAppConfig({ themeColor: t.id })}
+                          className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${appConfig.themeColor === t.id ? 'border-slate-800 bg-slate-50 scale-105' : 'border-transparent hover:bg-slate-50'}`}
+                        >
+                           <div className={`w-12 h-12 rounded-full ${t.color} shadow-lg`}></div>
+                           <span className="text-xs font-bold">{t.name}</span>
+                        </button>
+                      ))}
+                   </div>
+                </div>
+
+                <div className="border-t pt-8">
+                  <h3 className="text-xl font-bold text-slate-800 mb-4">Company Identity</h3>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-slate-600 mb-2">Company Name</label>
+                      <input 
+                        type="text" 
+                        value={appConfig.companyName} 
+                        onChange={(e) => updateAppConfig({ companyName: e.target.value })}
+                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-600 mb-2">Tagline (Navbar)</label>
+                      <input 
+                        type="text" 
+                        value={appConfig.tagline} 
+                        onChange={(e) => updateAppConfig({ tagline: e.target.value })}
+                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" 
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                       <label className="block text-sm font-bold text-slate-600 mb-2">Logo URL (Optional)</label>
+                       <div className="flex gap-2">
+                         <input 
+                            type="text" 
+                            value={appConfig.logoUrl} 
+                            onChange={(e) => updateAppConfig({ logoUrl: e.target.value })}
+                            className="flex-1 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" 
+                            placeholder="Leave empty to use default icon"
+                         />
+                         <button onClick={() => triggerUpload('logo')} className="bg-slate-100 p-3 rounded-lg border hover:bg-slate-200">
+                             {isUploading && uploadTarget === 'logo' ? <Loader2 className="animate-spin w-5 h-5" /> : <Upload className="w-5 h-5" />}
+                         </button>
+                       </div>
+                       {appConfig.logoUrl && <img src={appConfig.logoUrl} className="mt-2 h-10 object-contain" alt="Logo Preview" />}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* --- CONTENT TAB --- */}
+            {activeTab === 'content' && (
+              <div className="space-y-8">
+                 <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center"><Type className="mr-2" /> Main Website Text</h3>
+                 
+                 <div>
+                    <label className="block text-sm font-bold text-slate-600 mb-2">Hero Main Title</label>
+                    <textarea 
+                      rows={2}
+                      value={appConfig.heroTitle} 
+                      onChange={(e) => updateAppConfig({ heroTitle: e.target.value })}
+                      className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" 
+                    />
+                    <p className="text-xs text-slate-400 mt-1">Use HTML tags like &lt;br/&gt; for line breaks.</p>
+                 </div>
+
+                 <div>
+                    <label className="block text-sm font-bold text-slate-600 mb-2">Hero Subtitle</label>
+                    <textarea 
+                      rows={3}
+                      value={appConfig.heroSubtitle} 
+                      onChange={(e) => updateAppConfig({ heroSubtitle: e.target.value })}
+                      className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" 
+                    />
+                 </div>
+
+                 <div className="bg-yellow-50 border border-yellow-200 p-6 rounded-xl mt-8">
+                    <h4 className="font-bold text-yellow-900 mb-4 flex items-center"><Megaphone className="w-5 h-5 mr-2" /> Site Notification</h4>
+                    <div className="space-y-4">
+                        <label className="flex items-center space-x-3 cursor-pointer">
+                           <div className={`w-12 h-6 rounded-full p-1 transition-colors ${appConfig.notificationEnabled ? 'bg-green-500' : 'bg-slate-300'}`} onClick={() => updateAppConfig({notificationEnabled: !appConfig.notificationEnabled})}>
+                              <div className={`w-4 h-4 rounded-full bg-white shadow-md transform transition-transform ${appConfig.notificationEnabled ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                           </div>
+                           <span className="font-medium text-slate-700">Show Notification Banner</span>
+                        </label>
+                        
+                        <div>
+                           <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Notification Message</label>
+                           <input 
+                              type="text" 
+                              value={appConfig.notificationMessage}
+                              onChange={(e) => updateAppConfig({notificationMessage: e.target.value})}
+                              disabled={!appConfig.notificationEnabled}
+                              className={`w-full p-3 border rounded-lg outline-none ${!appConfig.notificationEnabled ? 'bg-slate-100 text-slate-400' : 'bg-white'}`}
+                           />
+                        </div>
+                    </div>
+                 </div>
+              </div>
+            )}
+
+            {/* --- SETTINGS TAB --- */}
             {activeTab === 'settings' && (
-                <div className="max-w-md mx-auto bg-white p-6 rounded-xl border border-slate-200">
-                   <h3 className="font-bold text-lg mb-4">Change Password</h3>
+                <div className="max-w-md mx-auto">
+                   <h3 className="font-bold text-lg mb-4">Admin Security</h3>
+                   <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mb-6">
+                      <p className="text-sm text-yellow-800 flex items-start"><AlertTriangle className="w-4 h-4 mr-2 mt-0.5" /> Change your admin password regularly to keep the site secure.</p>
+                   </div>
                    <div className="space-y-3">
-                      <input type="password" value={currentPassInput} onChange={e=>setCurrentPassInput(e.target.value)} placeholder="Current Password" className="w-full border p-2 rounded"/>
-                      <input type="password" value={newPassInput} onChange={e=>setNewPassInput(e.target.value)} placeholder="New Password" className="w-full border p-2 rounded"/>
-                      <input type="password" value={confirmPassInput} onChange={e=>setConfirmPassInput(e.target.value)} placeholder="Confirm New" className="w-full border p-2 rounded"/>
-                      <button onClick={handleChangePassword} className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700">Update</button>
+                      <input type="password" value={currentPassInput} onChange={e=>setCurrentPassInput(e.target.value)} placeholder="Current Password" className="w-full border p-3 rounded-lg"/>
+                      <input type="password" value={newPassInput} onChange={e=>setNewPassInput(e.target.value)} placeholder="New Password" className="w-full border p-3 rounded-lg"/>
+                      <input type="password" value={confirmPassInput} onChange={e=>setConfirmPassInput(e.target.value)} placeholder="Confirm New" className="w-full border p-3 rounded-lg"/>
+                      <button onClick={handleChangePassword} className="w-full bg-slate-900 text-white py-3 rounded-lg font-bold hover:bg-slate-800">Update Password</button>
                    </div>
                 </div>
             )}

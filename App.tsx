@@ -11,6 +11,7 @@ import Chatbot from './components/Chatbot';
 import WhatsAppFloat from './components/WhatsAppFloat';
 import ProcessTimeline from './components/ProcessTimeline';
 import Admin from './components/Admin'; // Import Admin
+import NotificationBanner from './components/NotificationBanner';
 
 // Scroll to top component
 const ScrollToTop = () => {
@@ -27,6 +28,7 @@ const App: React.FC = () => {
       <div className="min-h-screen flex flex-col bg-slate-50">
         <HashRouter>
           <ScrollToTop />
+          <NotificationBanner />
           <Navbar />
           
           <main className="flex-grow">

@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { Menu, X, ShieldCheck } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { useContent } from '../contexts/ContentContext';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { appConfig } = useContent();
+  const theme = appConfig.themeColor || 'indigo';
 
   const navLinks = [
     { label: 'Home', path: '/' },
@@ -18,7 +21,7 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl shadow-lg border-b border-indigo-50 transition-all duration-300">
+    <nav className={`sticky top-0 z-50 bg-white/80 backdrop-blur-xl shadow-lg border-b border-${theme}-50 transition-all duration-300`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center">
           {/* Logo Section */}
@@ -26,21 +29,25 @@ const Navbar: React.FC = () => {
             to="/" 
             className="flex items-center cursor-pointer group select-none"
           >
-            <div className="relative bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 p-2.5 rounded-2xl mr-3 shadow-lg shadow-indigo-200 group-hover:shadow-pink-400 group-hover:shadow-2xl transition-all duration-500 transform group-hover:rotate-6 group-hover:scale-110">
-              <ShieldCheck className="h-7 w-7 text-white" />
+            <div className={`relative bg-gradient-to-tr from-${theme}-600 via-purple-600 to-pink-500 p-2.5 rounded-2xl mr-3 shadow-lg shadow-${theme}-200 group-hover:shadow-pink-400 group-hover:shadow-2xl transition-all duration-500 transform group-hover:rotate-6 group-hover:scale-110`}>
+              {appConfig.logoUrl ? (
+                 <img src={appConfig.logoUrl} alt="Logo" className="h-7 w-7 object-contain brightness-0 invert" />
+              ) : (
+                 <ShieldCheck className="h-7 w-7 text-white" />
+              )}
               <div className="absolute inset-0 bg-white/30 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse"></div>
             </div>
             <div className="flex flex-col justify-center">
-              <span className="text-2xl font-black text-slate-800 tracking-tight group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-indigo-600 group-hover:to-pink-600 transition-all duration-300">
-                AVN VENTURES
+              <span className={`text-2xl font-black text-slate-800 tracking-tight group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-${theme}-600 group-hover:to-pink-600 transition-all duration-300`}>
+                {appConfig.companyName}
               </span>
-              <span className="text-[10px] font-bold text-indigo-600 tracking-[0.2em] uppercase leading-tight group-hover:tracking-[0.3em] transition-all duration-300">
-                Smart Solutions
+              <span className={`text-[10px] font-bold text-${theme}-600 tracking-[0.2em] uppercase leading-tight group-hover:tracking-[0.3em] transition-all duration-300`}>
+                {appConfig.tagline}
               </span>
             </div>
           </Link>
 
-          {/* Desktop Menu with Special Hover Effects */}
+          {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-2">
             {navLinks.map((link) => (
               <Link
@@ -48,22 +55,22 @@ const Navbar: React.FC = () => {
                 to={link.path}
                 className={`relative px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 overflow-hidden group/btn ${
                   isActive(link.path)
-                    ? 'text-white shadow-lg shadow-indigo-500/30'
-                    : 'text-slate-600 hover:text-indigo-600'
+                    ? `text-white shadow-lg shadow-${theme}-500/30`
+                    : `text-slate-600 hover:text-${theme}-600`
                 }`}
               >
                 {/* Active State Background */}
                 {isActive(link.path) && (
-                  <span className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 w-full h-full -z-10 animate-gradient-x"></span>
+                  <span className={`absolute inset-0 bg-gradient-to-r from-${theme}-600 to-purple-600 w-full h-full -z-10 animate-gradient-x`}></span>
                 )}
                 
-                {/* Hover Effect: Slide & Glow */}
-                <span className={`absolute inset-0 bg-indigo-50 w-full h-full -z-10 transform scale-x-0 group-hover/btn:scale-x-100 transition-transform origin-left duration-300 ${isActive(link.path) ? 'hidden' : 'block'}`}></span>
+                {/* Hover Effect */}
+                <span className={`absolute inset-0 bg-${theme}-50 w-full h-full -z-10 transform scale-x-0 group-hover/btn:scale-x-100 transition-transform origin-left duration-300 ${isActive(link.path) ? 'hidden' : 'block'}`}></span>
                 <span className="relative z-10 group-hover/btn:tracking-wide transition-all duration-300">{link.label}</span>
                 
-                {/* Bottom Glow Line */}
+                {/* Bottom Glow */}
                 {!isActive(link.path) && (
-                   <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-indigo-500 to-transparent transform scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-500"></span>
+                   <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-${theme}-500 to-transparent transform scale-x-0 group-hover/btn:scale-x-100 transition-transform duration-500`}></span>
                 )}
               </Link>
             ))}
@@ -84,7 +91,7 @@ const Navbar: React.FC = () => {
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-slate-600 hover:text-indigo-600 focus:outline-none p-2 rounded-lg hover:bg-slate-100 transition-colors"
+              className={`text-slate-600 hover:text-${theme}-600 focus:outline-none p-2 rounded-lg hover:bg-slate-100 transition-colors`}
             >
               {isOpen ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
             </button>
@@ -106,8 +113,8 @@ const Navbar: React.FC = () => {
               onClick={() => setIsOpen(false)}
               className={`block w-full text-left px-4 py-4 rounded-2xl text-base font-bold transition-all ${
                 isActive(link.path)
-                  ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 shadow-inner border border-indigo-100'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-indigo-600 hover:pl-6'
+                  ? `bg-gradient-to-r from-${theme}-50 to-purple-50 text-${theme}-700 shadow-inner border border-${theme}-100`
+                  : `text-slate-600 hover:bg-slate-50 hover:text-${theme}-600 hover:pl-6`
               }`}
             >
               {link.label}

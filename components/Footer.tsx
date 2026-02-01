@@ -1,8 +1,12 @@
 import React from 'react';
-import { ShieldCheck, Facebook, Instagram, Twitter, Phone, Lock } from 'lucide-react';
+import { ShieldCheck, Facebook, Instagram, Twitter, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useContent } from '../contexts/ContentContext';
 
 const Footer: React.FC = () => {
+  const { appConfig } = useContent();
+  const theme = appConfig.themeColor;
+
   return (
     <footer className="bg-slate-900 text-slate-300">
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
@@ -11,8 +15,12 @@ const Footer: React.FC = () => {
           {/* Brand */}
           <div className="col-span-1">
             <div className="flex items-center text-white mb-4">
-              <ShieldCheck className="h-8 w-8 mr-2 text-indigo-500" />
-              <span className="text-xl font-bold">AVN VENTURES</span>
+              {appConfig.logoUrl ? (
+                 <img src={appConfig.logoUrl} alt="Logo" className="h-8 w-auto mr-2" />
+              ) : (
+                 <ShieldCheck className={`h-8 w-8 mr-2 text-${theme}-500`} />
+              )}
+              <span className="text-xl font-bold">{appConfig.companyName}</span>
             </div>
             <p className="text-sm text-slate-400 leading-relaxed">
               Leading provider of security and sustainable energy solutions in Trivandrum. Dedicated to quality service and customer satisfaction.
@@ -39,7 +47,7 @@ const Footer: React.FC = () => {
               <li>MALAYINKEEZHU PO, TRIVANDRUM</li>
               <li>KERALA</li>
               <li className="text-white font-medium text-lg pt-2 flex items-center">
-                 <Phone className="w-4 h-4 mr-2 text-indigo-500" />
+                 <Phone className={`w-4 h-4 mr-2 text-${theme}-500`} />
                  +91 90745 90620
               </li>
               <li className="break-all">avnventuresllp@gmail.com</li>
@@ -59,7 +67,7 @@ const Footer: React.FC = () => {
                  href="https://www.facebook.com" 
                  target="_blank" 
                  rel="noopener noreferrer" 
-                 className="text-slate-400 hover:text-indigo-500 transition-all duration-300 transform hover:scale-110"
+                 className={`text-slate-400 hover:text-${theme}-500 transition-all duration-300 transform hover:scale-110`}
                  aria-label="Facebook"
                >
                  <Facebook className="h-5 w-5"/>
@@ -73,26 +81,14 @@ const Footer: React.FC = () => {
                >
                  <Instagram className="h-5 w-5"/>
                </a>
-               <a 
-                 href="https://twitter.com" 
-                 target="_blank" 
-                 rel="noopener noreferrer" 
-                 className="text-slate-400 hover:text-blue-400 transition-all duration-300 transform hover:scale-110"
-                 aria-label="Twitter"
-               >
-                 <Twitter className="h-5 w-5"/>
-               </a>
             </div>
           </div>
         </div>
         
-        <div className="mt-12 border-t border-slate-800 pt-8 text-center flex flex-col md:flex-row justify-between items-center">
-          <p className="text-xs text-slate-500 mb-2 md:mb-0">
-            &copy; {new Date().getFullYear()} AVN Ventures. All rights reserved.
+        <div className="mt-12 border-t border-slate-800 pt-8 text-center">
+          <p className="text-xs text-slate-500">
+            &copy; {new Date().getFullYear()} {appConfig.companyName}. All rights reserved.
           </p>
-          <Link to="/admin" className="text-xs text-slate-700 hover:text-slate-500 flex items-center gap-1">
-             <Lock className="w-3 h-3" /> Admin
-          </Link>
         </div>
       </div>
     </footer>
